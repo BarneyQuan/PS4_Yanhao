@@ -9,7 +9,7 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-**Name:**
+**Name: Yanhao Quan (Barney)**
 
 Instructions: 
 
@@ -34,14 +34,45 @@ This exercise uses data from Bryan,Chowdhury, and Mobarak's paper, "Underinvestm
 
 The data can be found by going to Mushfiq Mobarak's Yale faculty page, select "data", and then following the link to the data repository page on the Harvard dataverse. You will need to sign in to get access to the data files. Once logged in, you will find many possible files to download. Navigate to the second page of listed files and download `Mobarak - Monga Dataverse files.zip` which contains all the files we need. 
 
+```{r}
+library(haven)
+library(dplyr)
+library(stargazer)
+library(lfe)
+
+```
+
+
 
 ## Question: Loading the data - Load any packages you will need and the data contained in the following files `Round1_Controls_Table1.dta` and `Round2.dta`. How many observations are contained in each of these datasets. What is the level of an observation? Explain any discrepancies between the datasets.**
 
 **Code:**
+```{r}
+#Loading the data
+rct1 <- read_dta("C:/Users/85384/Desktop/PS4/Mobarak-Monga_Dataverse_files/Data/Round1_Controls_Table1.dta")
+rct1<-as.data.frame(rct1)
+View(rct1)
+r2 <- read_dta("C:/Users/85384/Desktop/PS4/Mobarak-Monga_Dataverse_files/Data/Round2.dta")
+r2<-as.data.frame(r2)
+View(r2)
 
+```
 
+```{r}
+nrow(rct1)
+ncol(rct1)
+```
 
+```{r}
+nrow(r2)
+ncol(r2)
+```
+!!!  come back to check
 **Answer:**
+The Round1_Controls_Table1 data contains 1900 observations where each observations is for one village. And the Round2 data contains 1907 observations for one village.
+The first data set is the table with controls, and the second table is the result with treatment.
+
+
 
  
 ## Question: Data Description- The dataset contains many variables, some of which are not used in this exercise. Keep the following variables in the final datasets (Hint: use the `select` function in `dplyr`).** 
@@ -57,7 +88,7 @@ For Round 1 data:
 |q9pdcalq9        |Total calories per person per day                                       | 
 |exp_total_pc_r1  |Total monthly household expenditures per capita                         |
 |hhmembers_r1     |Number of household members                                             |
-|tsaving_hh_r1    |Total household savings                                                  |
+|tsaving_hh_r1    |Total household savings                                                 |
 |hhh_education    |Household head is educated                                              |
 |num_adltmalesr1  |Number of adult males in the household                                  |
 
@@ -93,34 +124,74 @@ For Round 2 data:
 **A description of each variable should appear in the column headers of the loaded data. **
 
 **Code:**
+```{r}
+#select the data from the original data set
+rct1 <- as.data.frame(rct1)
+selected_rct1 <- select(rct1, cash, credit, info, control, q9pdcalq9, exp_total_pc_r1, hhmembers_r1, tsaving_hh_r1, hhh_education, num_adltmalesr1)
+selected_rct1 <- as.data.frame(selected_rct1)
+```
+
+
+```{r}
+#select the data from the original data set
+r2 <- as.data.frame(r2)
+selected_r2 <- select(r2, cash, credit, info, control, average_exp2, lit, walls_good, monga, dhaka_remit, dhaka_network, exp_total_pc_r1, subsistencer1, num_adltmalesr1, num_childrenr1, avgQ13earned, constrainedr1, bankedr1, upazila, village, migrant, total_fish, migrant_new)
+selected_r2 <- as.data.frame(selected_r2)
+```
+
 
 # Analysis:
 
-## **Question: Regress all the baseline household characteristics still included in the round 1 data  on the following three variables: $cash_i$, $credit_i$ and $info_i$, and present your results in a table. What is the equivalent table in the paper?** 
+## **Question: Regress all the baseline household characteristics still included in the round 1 data on the following three variables: $cash_i$, $credit_i$ and $info_i$, and present your results in a table. What is the equivalent table in the paper?** 
 
 **Code:**
+```{r}
+reg1 <- felm(selected_rct1$q9pdcalq9 ~ selected_rct1$cash + selected_rct1$credit + selected_rct1$info)
 
+reg2 <- felm(selected_rct1$exp_total_pc_r1 ~ selected_rct1$cash + selected_rct1$credit + selected_rct1$info)
 
-**Answer:** 
+reg3 <- felm(selected_rct1$hhmembers_r1 ~ selected_rct1$cash + selected_rct1$credit + selected_rct1$info)
+
+reg4 <- felm(selected_rct1$tsaving_hh_r1 ~ selected_rct1$cash + selected_rct1$credit + selected_rct1$info)
+
+reg5 <- felm(selected_rct1$hhh_education ~ selected_rct1$cash + selected_rct1$credit + selected_rct1$info)
+
+reg6 <- felm(selected_rct1$num_adltmalesr1 ~ selected_rct1$cash + selected_rct1$credit + selected_rct1$info)
+
+```
+
+```{r echo=FALSE, resize.width=10, results='asis'}
+stargazer(reg1, reg2, reg3, reg4, reg5, reg6, type = "text", dep.var.caption = "RANDOMIZATION BALANCE ON OBSERVABLES AT BASELINE", dep.var.labels = c("Total calories per person per day", "Total monthly household expenditures per capita", "Number of household members", "Total household savings", "Household head is educated", "Number of adult males in the household"), covariate.labels = c("In cash treatment group", "In credit treatment group", "In information treatment group"), notes.label = "Significance Levels")
+
+```
+
+**Answer:** Table 1 is the equivalent one in this paper.
 
 
 ## **Question: How should the coefficients in the table above be interpreted? What should we look for in this table?**
 
-**Answer:**
+**Answer:** The estimators in the table above are basically not significant, which is a good thing because all baseline household characteristics we don't want them have correlation with our treatment variables. In this case our treatments are all good treatments. 
 
 
 ## **Question: Using the round 2 data, regress migrant on the treatment arm indicators. What is the equivalent table in the paper?**
 
 **Code:**
+```{r}
+reg7 <- felm(selected_r2$migrant ~ selected_r2$cash + selected_r2$credit + selected_r2$info)
+reg8 <- felm(selected_r2$migrant_new ~ selected_r2$cash + selected_r2$credit + selected_r2$info)
 
-**Answer:** 
+stargazer(reg7, reg8, type = "text", dep.var.caption = "PROGRAM TAKE-UP RATES", dep.var.labels = c("Member of household migrates this season", "Household has a first time migrant this season"), covariate.labels = c("Cash", "Credit", "Info"), notes.label = "Significance Levels")
+```
+
+
+**Answer:** Table 2 is the equivalent table in the paper.
 
 
 ## **Question: How should the coefficients in the table above be interpreted? Why is this table important?**
 
-**Answer:**
+**Answer:** The estimators of cash treatment and credit treatment are significant but Info treatment is not, then it is important because we could tell the relationship between migrant and cash and credit. We could say under cash treatment, the member of household migrates this season increased 23% and vice versa.
 
-
+!!!
 ## **Question: What is the underlying migration rate in the control group and how might this change our interpretation of the results? **
 
 **Answer:**
@@ -138,6 +209,11 @@ where you can replace fevariables and ivfirststage with 0 if you are not using f
 
 
 **Code:**
+```{r}
+reg8 <- felm(selected_r2$average_exp2 ~ selected_r2$cash + selected_r2$credit + selected_r2$info |upazila|0|village, selected_r2)
+stargazer(reg8, type = "text", dep.var.caption = "EFFECTS OF MIGRATION BEFORE DECEMBER 2008 ON CONSUMPTION AMONGST REMAINING HOUSEHOLD MEMBERS", dep.var.labels = c("Total consumption"), covariate.labels = c("Cash", "Credit", "Info"), notes.label = "Significance Levels")
+
+```
 
 
 
@@ -148,6 +224,11 @@ where you can replace fevariables and ivfirststage with 0 if you are not using f
 ## **Question: What happens to these estimates if you drop the fixed effects from the specification. Why? **
 
 **Code:**
+```{r}
+reg9 <- felm(selected_r2$average_exp2 ~ selected_r2$cash + selected_r2$credit + selected_r2$info |0|0|village, selected_r2)
+stargazer(reg9, type = "text", dep.var.caption = "EFFECTS OF MIGRATION BEFORE DECEMBER 2008 ON CONSUMPTION AMONGST REMAINING HOUSEHOLD MEMBERS", dep.var.labels = c("Total consumption"), covariate.labels = c("Cash", "Credit", "Info"), notes.label = "Significance Levels")
+```
+
 
 
 **Answer:**
