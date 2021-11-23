@@ -67,12 +67,9 @@ ncol(rct1)
 nrow(r2)
 ncol(r2)
 ```
-!!!  come back to check
+
 **Answer:**
-The Round1_Controls_Table1 data contains 1900 observations where each observations is for one village. And the Round2 data contains 1907 observations for one village.
-The first data set is the table with controls, and the second table is the result with treatment.
-
-
+The Round1_Controls_Table1 data contains 1900 observations where each observations is for one village. And the Round2 data contains 1907 observations for one village. And Round2 has follow up data about the migration experience, contained more variables, and I will say Round2's data are build upon Round1"s.
 
  
 ## Question: Data Description- The dataset contains many variables, some of which are not used in this exercise. Keep the following variables in the final datasets (Hint: use the `select` function in `dplyr`).** 
@@ -161,7 +158,7 @@ reg6 <- felm(selected_rct1$num_adltmalesr1 ~ selected_rct1$cash + selected_rct1$
 ```
 
 ```{r echo=FALSE, resize.width=10, results='asis'}
-stargazer(reg1, reg2, reg3, reg4, reg5, reg6, type = "text", dep.var.caption = "RANDOMIZATION BALANCE ON OBSERVABLES AT BASELINE", dep.var.labels = c("Total calories per person per day", "Total monthly household expenditures per capita", "Number of household members", "Total household savings", "Household head is educated", "Number of adult males in the household"), covariate.labels = c("In cash treatment group", "In credit treatment group", "In information treatment group"), notes.label = "Significance Levels")
+stargazer(reg1, reg2, reg3, reg4, reg5, reg6, type = "html", dep.var.caption = "RANDOMIZATION BALANCE ON OBSERVABLES AT BASELINE", dep.var.labels = c("Total calories per person per day", "Total monthly household expenditures per capita", "Number of household members", "Total household savings", "Household head is educated", "Number of adult males in the household"), covariate.labels = c("In cash treatment group", "In credit treatment group", "In information treatment group"), notes.label = "Significance Levels")
 
 ```
 
@@ -176,11 +173,11 @@ stargazer(reg1, reg2, reg3, reg4, reg5, reg6, type = "text", dep.var.caption = "
 ## **Question: Using the round 2 data, regress migrant on the treatment arm indicators. What is the equivalent table in the paper?**
 
 **Code:**
-```{r}
+```{r echo=FALSE, resize.width=10, results='asis'}
 reg7 <- felm(selected_r2$migrant ~ selected_r2$cash + selected_r2$credit + selected_r2$info)
 reg8 <- felm(selected_r2$migrant_new ~ selected_r2$cash + selected_r2$credit + selected_r2$info)
 
-stargazer(reg7, reg8, type = "text", dep.var.caption = "PROGRAM TAKE-UP RATES", dep.var.labels = c("Member of household migrates this season", "Household has a first time migrant this season"), covariate.labels = c("Cash", "Credit", "Info"), notes.label = "Significance Levels")
+stargazer(reg7, reg8, type = "html", dep.var.caption = "PROGRAM TAKE-UP RATES", dep.var.labels = c("Member of household migrates this season", "Household has a first time migrant this season"), covariate.labels = c("Cash", "Credit", "Info"), notes.label = "Significance Levels")
 ```
 
 
@@ -191,10 +188,10 @@ stargazer(reg7, reg8, type = "text", dep.var.caption = "PROGRAM TAKE-UP RATES", 
 
 **Answer:** The estimators of cash treatment and credit treatment are significant but Info treatment is not, then it is important because we could tell the relationship between migrant and cash and credit. We could say under cash treatment, the member of household migrates this season increased 23% and vice versa.
 
-!!!
+
 ## **Question: What is the underlying migration rate in the control group and how might this change our interpretation of the results? **
 
-**Answer:**
+**Answer:**The underlying migration rate in the control group is 36%, this mean when the migration rate under cash and credit treatment will increase 23% and 20.8% more compares to th control group.
 
 
 ## **Question: Replicate the results presented in the third row of the first three columns of table 3. Present them in a table and interpret these results. **
@@ -209,29 +206,28 @@ where you can replace fevariables and ivfirststage with 0 if you are not using f
 
 
 **Code:**
-```{r}
+```{r echo=FALSE, resize.width=10, results='asis'}
 reg8 <- felm(selected_r2$average_exp2 ~ selected_r2$cash + selected_r2$credit + selected_r2$info |upazila|0|village, selected_r2)
-stargazer(reg8, type = "text", dep.var.caption = "EFFECTS OF MIGRATION BEFORE DECEMBER 2008 ON CONSUMPTION AMONGST REMAINING HOUSEHOLD MEMBERS", dep.var.labels = c("Total consumption"), covariate.labels = c("Cash", "Credit", "Info"), notes.label = "Significance Levels")
+stargazer(reg8, type = "html", dep.var.caption = "EFFECTS OF MIGRATION ON CONSUMPTION AMONGST REMAINING HOUSEHOLD MEMBERS", dep.var.labels = c("Total consumption"), covariate.labels = c("Cash", "Credit", "Info"), notes.label = "Significance Levels")
 
 ```
 
 
-
-
-**Answer:**
+**Answer:** The result shown above is quite close to the result presented in the paper.
 
 
 ## **Question: What happens to these estimates if you drop the fixed effects from the specification. Why? **
 
 **Code:**
-```{r}
+```{r echo=FALSE, resize.width=10, results='asis'}
 reg9 <- felm(selected_r2$average_exp2 ~ selected_r2$cash + selected_r2$credit + selected_r2$info |0|0|village, selected_r2)
-stargazer(reg9, type = "text", dep.var.caption = "EFFECTS OF MIGRATION BEFORE DECEMBER 2008 ON CONSUMPTION AMONGST REMAINING HOUSEHOLD MEMBERS", dep.var.labels = c("Total consumption"), covariate.labels = c("Cash", "Credit", "Info"), notes.label = "Significance Levels")
+stargazer(reg9, type = "html", dep.var.caption = "EFFECTS OF MIGRATION ON CONSUMPTION AMONGST REMAINING HOUSEHOLD MEMBERS", dep.var.labels = c("Total consumption"), covariate.labels = c("Cash", "Credit", "Info"), notes.label = "Significance Levels")
 ```
 
 
 
-**Answer:**
+**Answer:**Compare to with the fixed effect, the estimator for credit become non-significant, and the estimator of cash dropped a little bit. This could explained by there is a relationship between the a certain sub-district name and cash and credit. Therefore when we remove the fixed effect, it effect our regression and make it less accurate.
+
 
 
 
@@ -241,30 +237,42 @@ Hint: You will need to construct a new variable to run these estimates.
 
 
 **Code:**
+```{r}
+r2$treat <- ifelse(r2$cash == '1' | r2$credit == '1', 1, 0) 
+```
+
+```{r}
+reg10 <- felm(r2$average_exp2 ~ r2$treat|upazila|0|village, data = r2)
+reg11 <- felm(r2$average_exp2 ~ r2$treat + walls_good + subsistencer1 + num_adltmalesr1 + num_childrenr1 + constrainedr1 + bankedr1 + exp_total_pc_r1 + monga + dhaka_network|upazila|0|village, r2)
+
+```
+#I'm not sure why the result below is different from that in paper
+```{r echo=FALSE, resize.width=10, results='asis'}
+stargazer(reg10, reg11, type = "html", style = "qje", title = "EFFECTS OF MIGRATION ON CONSUMPTION AMONGST REMAINING HOUSEHOLD MEMBERS", dep.var.caption = "Intent-to-Treat", dep.var.labels = c("ITT", "ITT"), covariate.labels = c("Total consumption","Wall material (income proxy)", "percentage of total expenditure on food", "number of adult males", "number of children", "lacked access to credit", "borrowing", "total household expenditures per capita measured at baseline", "subjective expectations about monga", "social network support measured at baseline"), notes.label = "Significance Levels")
+```
 
 
 
 **Answer:**
-
+The coefficients dropped and standard error increased and become less coefficient, and it is not suprising because we are not put any instrumental variable into the regresion function right now.
 
 ## **Question: Why is the header of the first five columns of table 3 "ITT". What is meant by this and what does this tell us about how we should interpret these results?**
 
-**Answer:**
-
+**Answer:** "ITT" means intent-to-treat, the regression model is to present pure experimental (intent-to-treat) estimate, with consumption measures regressed on randomly assigned treatment: cash,credit, and information for migration. You could think ITT as a dummy variable for either get treated or not treated. Column 4 reports the intent-to-treat estimates for these two incentive treatments jointly, and column 5 indicates that these effects are generally robust to adding some controls for baseline characteristics. So the first five columns of table 3 are "ITT". We could interpret it as after cash treatment, the total consumption increases 97 Taka per household member per month, after credit treatment, the total consumption increases 77 Taka per household member per month, and in overall, the treatmet group increases the consumption by 61 Taka per household member per month.
 
 ## **Question: We are interested in estimating how migration affects total expenditures for the households that were induced to migrate by the cash and credit treatments as follows,**
 
 $$
 TotExp_{ivj}=\alpha+\beta_1Migrate_{ivj}+\theta X_{ivj}+\varphi_j+\nu_{ivj}
 $$
-**where $Migrate_{ivj}$ is dummy indicator for if a member of household i in village v in subdistrict j migrated, $X_{ivj}$ is a vector of control variables and $\varphi_j$ are the subdistrict fixed effects. However it is not possible to identify in the data which households were induced by the treatment vs those who would have migrated  either way. Furthermore, there is likely substantial selection between the households that select into migration versus those that do not. Propose a source of exogenous variation that can be used as an instrument to isolate "good" exogenous variation in migration. **
+**where $Migrate_{ivj}$ is dummy indicator for if a member of household i in village v in subdistrict j migrated, $X_{ivj}$ is a vector of control variables and $\varphi_j$ are the subdistrict fixed effects. However it is not possible to identify in the data which households were induced by the treatment vs those who would have migrated either way. Furthermore, there is likely substantial selection between the households that select into migration versus those that do not. Propose a source of exogenous variation that can be used as an instrument to isolate "good" exogenous variation in migration. **
 
-**Answer:**
+**Answer:** 
  
 
 ## **Question: What is the first stage specification?**
 
-**Answer:**
+**Answer:** use cash and credit as the treatment and effect the total consumption by giving treatment on new migration, since cash and credit could increase new migration, therefore total consumption would increase due to migration increases.
 
 
 ## **Question: Estimate the first stage and check that you have a strong instrument for migration.**
@@ -272,9 +280,14 @@ $$
  Note: The first stage results reported in the paper appendix may differ slightly as explained in the table footnote.  
 
 **Code:**
+```{r}
+reg12 <- felm(data = selected_r2, migrant_new ~ selected_r2$cash + selected_r2$credit)
+summary(reg12)
+```
 
 
-**Answer:**
+
+**Answer:** the t value are all quite big, and the p-value are so small means it is significant, then we have a strong instrument for migration.
 
 
 ## **Question: Use your instrument to estimate the LATE (Local Average Treatment Effect), the impact of migration on total consumption for those induced to migrate by the treatment, as in columns 6 and 7 of table 3 in the paper. Interpret your results. **
@@ -282,31 +295,50 @@ $$
 Note: if you wish to replicate the paper's coefficients exactly, you will need to use multiple instruments, one for each treatment arm.
 
 **Code:**
+```{r}
+reg13 <- felm(r2$average_exp2 ~ 1 |upazila | (migrant_new ~ cash + credit) | village, r2)
+reg14 <- felm(r2$average_exp2 ~ lit + walls_good + subsistencer1 + num_adltmalesr1 + num_childrenr1 + constrainedr1 + bankedr1 + exp_total_pc_r1 + monga + dhaka_remit + dhaka_network + avgQ13earned | upazila | (migrant_new ~ cash + credit) | village, r2)
+```
+
+```{r echo=FALSE, resize.width=10, results='asis'}
+stargazer(reg13, reg14,
+          type= "html",
+          style = "qje",
+          title= "LATE of Migration on Total Consumption",
+          omit = c("lit", "walls_good", "subsistencer1", "num_adltmalesr1", "num_childrenr1", "constrainedr1", "bankedr1", "exp_total_pc_r1", "monga", "dhaka_remit", "dhaka_network", "avgQ13earned"),
+          dep.var.caption = c("Total consumption"),
+          dep.var.labels = c("Total consumption", "Total consumption"),
+          covariate.labels = c("IV"), 
+          notes.label = "Significance Levels",
+          add.lines = list(c("controls", "No", "Yes")))
+
+```
 
 
-**Answer:**
+**Answer:**The table above shows the Local Average Treatment Effect of Migration on Total Consumption. (1) is the estimator with IV first stage and without any controls, the total consumption will increase about 353 Taka per household member per month. If we do the regression with all those controls above, the total consumption will increase about 312 Taka per household member per month. All the estimators above are significant.
 
 
 
 ## **Question: Why are these results different from those in columns 4 and 5 of the paper?  **
 
-**Answer:** 
+**Answer:** because for column 4 and 5, we are not using any instrumental variable, so there will be many omitted variables, that is why the results are different.
 
 
 ## **Question: Why is this value particularly relevant for policy decisions in the context of this experiment.**
 
-**Answer:**
+**Answer:** because we could tell from the regression function if we decide to use this policy, will it bring us the positive results. The table above shows us the real effect on implement this policy. The results are all significant means we could use this policy in a small scale.
 
 
 ## **Question: Suppose a policy maker found these results so compelling that they decided to make this a national policy. How would general equilibrium effects potentially change the impacts of this policy if it was implemented in a very large scale way?**
 
-**Answer:**
+**Answer:**If the policy were implemented at scale, some interventions could affect national level variables which in turn could potentially counteract some of the benefits that were estimated in the small scale experiment.
 
 
 ## **Question: One major concern that is often brought up in discussions about RCT's is the problem of external validity. It is not always clear how informative the findings from a small scale research project in one context are for policy makers working on a different scale and in different contexts. What are your thoughts on the external validity of this particular project and RCT's in general? **
 
-**Answer:**
+**Answer:** In general, RCT’s (especially in development economics) are often conducted in a limited geographical area with a relatively small sample size. (Small as compared to the kind of sample you might have when working with large administrative data.) It is thus not always clear if you would expect to get the same results in a different context or if the program were implemented on a larger scale. Because RCT’s are often implemented with a lot more care and resources then a large scale policy might be, it is also not clear if we would expect the same results. 
 
+In this particular project, the quantitative work implies that we are not be able to provide a fully satisfying explanation for why people in Rangpur had not saved up to migrate. We are therefore hesitant to draw policy implications from our research. However, it is clear that the migration support programs we implement help some Rangpur households cope with the monga famine, and appear more cost-effective than subsidizing food purchases on an ongoing basis, which is the major anti-famine policy tool currently employed by the Bangladesh government.
 
 # Submission instructions:
 
